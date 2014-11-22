@@ -4,6 +4,16 @@
 
 This is a starting base to create Drupal 7 websites using an install profile.
 
+1. Follow the below Installation notes
+1. Add to the ``settings.php``:
+```
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Headers: Authorization, access_token, Content-Type');
+```
+1. If you Drupal site is not running under ``http://localhost/todo_restful/www`` then in ``client/Gruntfile.js`` 
+  change the ``apiEndpoint`` in line 404 to the correct one
+1. Under ``client`` directory execute ``grunt serve``
 
 ## Installation
 
