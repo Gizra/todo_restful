@@ -418,7 +418,8 @@ module.exports = function (grunt) {
       },
       production: {
         options: {
-          dest: '<%= yeoman.dist %>/scripts/config.js'
+          // Overwrite the app, as it will be copied upon build.
+          dest: '<%= yeoman.app %>/scripts/config.js'
         },
         constants: {
           ENV: {
