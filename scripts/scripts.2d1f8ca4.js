@@ -43,7 +43,7 @@ angular
 
  angular.module('config', [])
 
-.constant('ENV', {name:'development',apiEndpoint:'http://localhost/todo_restful/www'})
+.constant('ENV', {name:'production',apiEndpoint:'http://live-todo-restful.pantheon.io'})
 
 ;
 /*global angular */
