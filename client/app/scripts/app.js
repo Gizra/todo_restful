@@ -10,7 +10,8 @@
  */
 angular
   .module('clientApp', [
-    'ngRoute'
+    'ngRoute',
+    'config'
   ])
   .config(function ($routeProvider) {
     $routeProvider
