@@ -8,5 +8,6 @@ $plugin = array(
   'bundle' => 'todo',
   'description' => t('Export the "ToDo" content type.'),
   'class' => 'TodosResource',
+  // @todo: Add once we provide login.
   // 'authentication_types' => TRUE,
 );

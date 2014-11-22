@@ -44,7 +44,7 @@ angular.module('todomvc')
 				return $http.delete(ENV.apiEndpoint + '/api/todos')
 					.then(function success() {
 						return store.todos;
-					}, function error() {
+					}, function error(resp) {
 						angular.copy(originalTodos, store.todos);
 						return originalTodos;
 					});
@@ -67,7 +67,7 @@ angular.module('todomvc')
 			get: function () {
 				return $http.get(ENV.apiEndpoint + '/api/todos')
 					.then(function (resp) {
-						angular.copy(resp.data, store.todos);
+						angular.copy(resp.data.data, store.todos);
 						return store.todos;
 					});
 			},
