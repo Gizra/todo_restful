@@ -23,4 +23,17 @@ class TodosResource extends \RestfulEntityBaseNode {
 
     return $public_fields;
   }
+
+  /**
+   * Overrides \RestfulEntityBase::updateEntity().
+   *
+   * Unset the ID from the request if it was sent.
+   */
+  protected function updateEntity($entity_id, $null_missing_fields = FALSE) {
+    $request = $this->getRequest();
+    unset($request['id']);
+    $this->setRequest($request);
+    return parent::updateEntity($entity_id, $null_missing_fields);
+  }
+
 }
