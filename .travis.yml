@@ -1,0 +1,70 @@
+language: php
+
+php:
+  - 5.4
+
+mysql:
+  database: drupal
+  username: root
+  encoding: utf8
+
+before_install:
+  - sudo apt-get update > /dev/null
+  - composer self-update
+
+install:
+  # install php packages required for running a web server from drush on php 5.3
+  - sudo apt-get install -y --force-yes php5-cgi php5-mysql
+
+  # install drush
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  - composer global require drush/drush:6.*@dev
+  - phpenv rehash
+
+before_script:
+  - cp default.config.sh config.sh
+  - bash scripts/ci/setup
+  - bash scripts/build
+  - cd www
+  - drush si todo --db-url=mysql://root:@127.0.0.1/drupal --account-pass=admin --yes
+  - drush cc all --yes
+  # Use drush migrate command to import dummy content, as user 1, so we don't have node access issues.
+  # - drush mi --all --user=1
+
+  - cd ..
+
+  # Create a behat configuration file.
+  - cd todo/behat
+  - cp behat.local.yml.travis behat.local.yml
+
+  # Create Drush alias.
+  - cp aliases.drushrc.php ~/.drush/
+  - composer install --prefer-source
+
+
+script:
+  # Create display.
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3 # give xvfb some time to start
+
+  # start a web server on port 8080, run in the background; wait for initialization
+  - drush @todo runserver 127.0.0.1:8080 &
+  - until netstat -an 2>/dev/null | grep '8080.*LISTEN'; do true; done
+
+  # Run selenium.
+  - wget http://selenium-release.storage.googleapis.com/2.40/selenium-server-standalone-2.40.0.jar
+  - java -jar selenium-server-standalone-2.40.0.jar -p 4444 &
+  - sleep 5
+
+  - ./bin/behat --tags=~@wip
+
+
+  # Run WebTests ---------------------------------------------------------------
+  - drush @todo -y en simpletest
+
+  # Add the tests here. Use the group name, classname or the file.
+  # Example:
+  - drush @todo test-run "todo:demo"
+
+  # End Run WebTests -----------------------------------------------------------

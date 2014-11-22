@@ -1,0 +1,11 @@
+default:
+  extensions:
+    Behat\MinkExtension\Extension:
+      base_url: http://localhost/todo/www
+      goutte:
+        guzzle_parameters:
+          redirect.disable: true
+    Drupal\DrupalExtension\Extension:
+      api_driver: "drupal"
+      drupal:
+        drupal_root: "/var/www/todo/www"

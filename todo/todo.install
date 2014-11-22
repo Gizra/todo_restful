@@ -1,0 +1,512 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the
+ * ToDo installation profile.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function todo_install() {
+  // Fixes problems when the CSV files used for importing have been created
+  // on a Mac, by forcing PHP to detect the appropriate line endings.
+  ini_set('auto_detect_line_endings', TRUE);
+
+  // TEXT FORMATS
+  $filtered_html_format = _todo_install_get_filtered_html_format();
+  filter_format_save($filtered_html_format);
+  $full_html_format = _todo_install_get_full_html_format();
+  filter_format_save($full_html_format);
+
+
+  // ROLES & PERMISSIONS
+  _todo_install_save_default_permissions($filtered_html_format);
+
+  // MENU
+  _todo_install_save_default_menu();
+  menu_rebuild();
+
+  // THEMES
+  $theme_default = variable_get('theme_default', 'bartik');
+
+  $theme_admin = 'seven';
+  _todo_install_save_theme($theme_admin, 1);
+  variable_set('admin_theme', $theme_admin);
+  variable_set('node_admin_theme', TRUE);
+
+  // TODO: Replace this with the site specific theme name when not Bartik!
+  $theme_todo = $theme_default;
+  if ($theme_todo !== $theme_default) {
+    _todo_install_save_theme($theme_todo, 1);
+    variable_set('theme_default', $theme_todo);
+    // Disable Bartik
+    _todo_install_save_theme($theme_default, 0);
+  }
+
+  // BLOCKS
+  $admin_blocks = _todo_install_get_admin_theme_blocks($theme_admin);
+  _todo_install_save_theme_blocks($admin_blocks);
+
+  $todo_blocks = _todo_install_get_todo_theme_blocks($theme_todo);
+  _todo_install_save_theme_blocks($todo_blocks);
+
+  _todo_install_set_default_date_formats();
+
+
+  // DATE & DATE FORMAT
+  date_default_timezone_set('Europe/Brussels');
+  variable_set('date_default_timezone', 'Europe/Brussels');
+  variable_set('date_first_day', 1);
+  _todo_install_set_default_date_formats();
+}
+
+
+
+
+/******************************************************************************
+ * TEXT FORMATS (Default filters)
+ ******************************************************************************/
+
+/**
+ * Get the filtered_html format.
+ *
+ * @param void
+ *
+ * @return stdCLass
+ */
+function _todo_install_get_filtered_html_format() {
+  $filtered_html_format = array(
+    'format' => 'filtered_html',
+    'name' => 'Filtered HTML',
+    'weight' => 0,
+    'filters' => array(
+      // URL filter.
+      'filter_url' => array(
+        'weight' => 0,
+        'status' => 1,
+      ),
+      // HTML filter.
+      'filter_html' => array(
+        'weight' => 1,
+        'status' => 1,
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 2,
+        'status' => 1,
+      ),
+      // HTML corrector filter.
+      'filter_htmlcorrector' => array(
+        'weight' => 10,
+        'status' => 1,
+      ),
+    ),
+  );
+  $filtered_html_format = (object) $filtered_html_format;
+
+  return $filtered_html_format;
+}
+
+/**
+ * Get the full_html format.
+ *
+ * @param void
+ *
+ * @return stdCLass
+ */
+function _todo_install_get_full_html_format() {
+  $full_html_format = array(
+    'format' => 'full_html',
+    'name' => 'Full HTML',
+    'weight' => 1,
+    'filters' => array(
+      // URL filter.
+      'filter_url' => array(
+        'weight' => 0,
+        'status' => 1,
+      ),
+      // Line break filter.
+      'filter_autop' => array(
+        'weight' => 1,
+        'status' => 1,
+      ),
+      // HTML corrector filter.
+      'filter_htmlcorrector' => array(
+        'weight' => 10,
+        'status' => 1,
+      ),
+    ),
+  );
+  $full_html_format = (object) $full_html_format;
+
+  return $full_html_format;
+}
+
+
+
+/******************************************************************************
+ * ROLES & PERMISSIONS
+ ******************************************************************************/
+
+/**
+ * Save the default permissions.
+ *
+ * @param stdClass $filtered_html_format
+ *
+ * @return void
+ */
+function _todo_install_save_default_permissions($filtered_html_format) {
+  // Only admins can create new members.
+  variable_set('user_register', USER_REGISTER_ADMINISTRATOS_ONLY);
+
+  // Enable default permissions for system roles.
+  $filtered_html_permission = filter_permission_name($filtered_html_format);
+  user_role_grant_permissions(
+    DRUPAL_ANONYMOUS_RID,
+    array(
+      'access content',
+      'access comments',
+      $filtered_html_permission
+    )
+  );
+  user_role_grant_permissions(
+    DRUPAL_AUTHENTICATED_RID,
+    array(
+      'access content',
+      'access comments',
+      'post comments',
+      'skip comment approval',
+      $filtered_html_permission
+    )
+  );
+
+  // Create a default role for site administrators, with all available permissions assigned.
+  $admin_role = new stdClass();
+  $admin_role->name = 'administrator';
+  $admin_role->weight = 2;
+  user_role_save($admin_role);
+  user_role_grant_permissions(
+    $admin_role->rid,
+    array_keys(module_invoke_all('permission'))
+  );
+  // Set this as the administrator role.
+  variable_set('user_admin_role', $admin_role->rid);
+
+  // Assign user 1 the "administrator" role.
+  db_insert('users_roles')
+    ->fields(array('uid' => 1, 'rid' => $admin_role->rid))
+    ->execute();
+}
+
+
+
+/******************************************************************************
+ * MENU
+ ******************************************************************************/
+
+/**
+ * Set the default minimum menu items.
+ *
+ * @param void
+ *
+ * @return void
+ */
+function _todo_install_save_default_menu() {
+  // Create a Home link in the main menu.
+  $item = array(
+    'link_title' => st('Home'),
+    'link_path' => '<front>',
+    'menu_name' => 'main-menu',
+    'weight'    => -50,
+  );
+  menu_link_save($item);
+}
+
+
+
+/******************************************************************************
+ * THEMES
+ ******************************************************************************/
+
+/**
+ * Save the the given theme status in the system table.
+ *
+ * @param string $name
+ *   The theme name.
+ * @param $status
+ *   The status of the theme.
+ *
+ * @return void
+ */
+function _todo_install_save_theme($name, $status) {
+  db_update('system')
+    ->fields(array('status' => (int)$status))
+    ->condition('type', 'theme')
+    ->condition('name', $name)
+    ->execute();
+}
+
+
+
+/******************************************************************************
+ * BLOCKS
+ ******************************************************************************/
+
+/**
+ * Add an array of blocks to the given theme.
+ *
+ * @param array $blocks
+ *
+ * @return void
+ */
+function _todo_install_save_theme_blocks($blocks) {
+  $query = db_insert('block')->fields(array(
+      'module',
+      'delta',
+      'theme',
+      'status',
+      'weight',
+      'region',
+      'pages',
+      'cache'
+    ));
+
+  foreach ($blocks as $block) {
+    $query->values($block);
+  }
+  $query->execute();
+}
+
+/**
+ * Get the default theme blocks
+ *
+ * @param string $theme
+ *   The name of the theme.
+ *
+ * @return array
+ */
+function _todo_install_get_default_theme_blocks($theme) {
+  $blocks = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => -1,
+      'region' => 'sidebar_first',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'sidebar_first',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'navigation',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'sidebar_first',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'powered-by',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'footer',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+    ),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Get the default theme blocks
+ *
+ * @param string $theme
+ *   The name of the theme.
+ *
+ * @return array
+ */
+function _todo_install_get_admin_theme_blocks($theme) {
+  $blocks = array(
+    // Only if the dashboard module is in use...
+    /*array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1,
+    ),*/
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    // Only if the dashboard module is in use...
+    /*array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+    ),*/
+    // Only if the dashboard module is in use...
+    /*array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+    ),*/
+  );
+
+  return $blocks;
+}
+
+/**
+ * Get the todo theme blocks
+ *
+ * @param string $theme
+ *   The name of the theme.
+ *
+ * @return array
+ */
+function _todo_install_get_todo_theme_blocks($theme) {
+  $blocks = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+    ),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Set the default time formats
+ *
+ * @param void
+ *
+ * @return array
+ */
+function _todo_install_set_default_date_formats() {
+  $formats = array(
+    // Default.
+    'long'         => 'l, j F, Y - H:i',
+    'medium'       => 'D, d/m/Y - H:i',
+    'short'        => 'd/m/Y - H:i',
+
+    // Reldate module.
+    'day'          => 'l, j M',
+    'time'         => 'H:i',
+    'month_after'  => 'H:i j M, Y',
+    'month_within' => 'H:i D j M',
+  );
+
+  foreach ($formats AS $type => $format) {
+    variable_set('date_format_' . $type, $format);
+  }
+
+  return array(
+    'success' => TRUE,
+    'query' => st('Default date formats are set.')
+  );
+}
+
+
+
+
+/******************************************************************************
+ * UPDATES GO HERE
+ ******************************************************************************/
+
+
+
+
+
+
+

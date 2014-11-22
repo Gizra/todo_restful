@@ -1,0 +1,53 @@
+name = ToDo
+description = ToDo platform installation profile
+version = 1.x-dev
+core = 7.x
+
+
+; Core ------------------------------------------------------------------------
+dependencies[] = block
+;dependencies[] = color
+dependencies[] = comment
+dependencies[] = contextual
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = overlay
+dependencies[] = path
+dependencies[] = taxonomy
+dependencies[] = dblog
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = file
+dependencies[] = rdf
+
+; Contrib modules -------------------------------------------------------------
+dependencies[] = admin_menu_toolbar
+dependencies[] = admin_views
+dependencies[] = context
+dependencies[] = ctools
+dependencies[] = date
+dependencies[] = date_popup
+dependencies[] = diff
+dependencies[] = entity
+dependencies[] = entity_token
+dependencies[] = entityreference
+dependencies[] = features
+dependencies[] = module_filter
+dependencies[] = pathauto
+dependencies[] = reldate
+dependencies[] = strongarm
+dependencies[] = transliteration
+dependencies[] = token
+dependencies[] = views
+dependencies[] = views_bulk_operations
+
+
+
+; todo modules ------------------------------------------------------------
+; Add here todo modules that should be anebled when installing the
+; todo profile.
+dependencies[] = todo_demo

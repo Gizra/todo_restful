@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Code for the Garmentbox Company feature.
+ */
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function todo_restful_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'restful') {
+    return 'plugins/' . $plugin;
+  }
+}
+
