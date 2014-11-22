@@ -17,6 +17,7 @@ angular.module('todomvc')
 			.then(function () {
 				return $injector.get('api');
 			}, function () {
+        alert('App cannot reach the Drupal site, so it will use the local storage. Is Drupal installed and did you add the HTTP headers in settings.php?');
 				return $injector.get('localStorage');
 			});
 	})
