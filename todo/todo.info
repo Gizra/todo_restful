@@ -6,6 +6,7 @@ core = 7.x
 
 ; Core ------------------------------------------------------------------------
 dependencies[] = block
+dependencies[] = comment
 dependencies[] = contextual
 dependencies[] = help
 dependencies[] = image
