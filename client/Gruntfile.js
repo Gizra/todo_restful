@@ -423,7 +423,7 @@ module.exports = function (grunt) {
         constants: {
           ENV: {
             name: 'production',
-            apiEndpoint: 'http://api.livesite.com'
+            apiEndpoint: 'http://live-todo-restful.pantheon.io/'
           }
         }
       }
