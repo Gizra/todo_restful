@@ -3,15 +3,15 @@
 # Drupal 7 - Install Profile ToDo
 
 1. Follow the below [Installation](https://github.com/Gizra/todo_restful#installation) notes
-2. Add to the ``settings.php``:
+1. If you Drupal site is not running under ``http://localhost/todo_restful/www`` then in ``client/Gruntfile.js`` 
+  change the ``apiEndpoint`` in line 404 to the correct one
+1. Under ``client`` directory execute ``grunt serve``
+1. Add to Drupal's ``settings.php``:
 ```
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers: Authorization, access_token, Content-Type');
 ```
-3. If you Drupal site is not running under ``http://localhost/todo_restful/www`` then in ``client/Gruntfile.js`` 
-  change the ``apiEndpoint`` in line 404 to the correct one
-4. Under ``client`` directory execute ``grunt serve``
 
 ## Installation
 
