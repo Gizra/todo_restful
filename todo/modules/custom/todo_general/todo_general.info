@@ -1,0 +1,10 @@
+name = Todo General
+core = 7.x
+dependencies[] = features
+dependencies[] = list
+dependencies[] = options
+features[features_api][] = api:2
+features[field_base][] = field_completed
+features[field_instance][] = node-todo-field_completed
+features[node][] = todo
+project path = profiles/todo/modules/custom

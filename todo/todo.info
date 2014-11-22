@@ -32,6 +32,5 @@ dependencies[] = views_bulk_operations
 
 
 ; todo modules ------------------------------------------------------------
-; Add here todo modules that should be anebled when installing the
-; todo profile.
+dependencies[] = todo_general
 dependencies[] = todo_restful
