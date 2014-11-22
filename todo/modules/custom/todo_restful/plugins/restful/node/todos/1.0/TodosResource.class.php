@@ -10,9 +10,8 @@ class TodosResource extends \RestfulEntityBaseNode {
   /**
    * Overrides \RestfulDataProviderEFQ::controllersInfo().
    *
-   * The app allows clearing "completed" todos. As it is not a typical RESTful
+   * The app allows clearing completed todos. As it is not a typical RESTful
    * task we handle it in a custom callback.
-   *
    */
   public static function controllersInfo() {
     $controllers = parent::controllersInfo();
@@ -63,7 +62,7 @@ class TodosResource extends \RestfulEntityBaseNode {
   }
 
   /**
-   * Delete all the completed todos by the acting user.
+   * Delete all the completed todos by the current user.
    */
   protected function deleteCompleted() {
     $account = $this->getAccount();
@@ -89,5 +88,4 @@ class TodosResource extends \RestfulEntityBaseNode {
       $this->deleteEntity($entity_id);
     }
   }
-
 }
