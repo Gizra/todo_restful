@@ -1,6 +1,13 @@
 [![Build Status](https://travis-ci.org/Gizra/todo_restful.svg)](https://travis-ci.org/Gizra/todo_restful)
 
-# Drupal 7 - Install Profile ToDo
+# TodoMVC adaptation to Drupal's RESTful
+
+## Live demo
+
+* [App demo](http://gizra.github.io/todo_restful/#/)
+* [Drupal Backend](http://live-todo-restful.pantheon.io/)
+
+To test it locally:
 
 1. Follow the below [Installation](https://github.com/Gizra/todo_restful#installation) notes
 1. If you Drupal site is not running under ``http://localhost/todo_restful/www`` then in ``client/Gruntfile.js`` 
