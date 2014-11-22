@@ -427,6 +427,16 @@ module.exports = function (grunt) {
           }
         }
       }
+    },
+    buildcontrol: {
+      dist: {
+        options: {
+          remote: 'git@github.com:Gizra/todo_restful.git',
+          branch: 'gh-pages',
+          commit: true,
+          push: true
+        }
+      }
     }
   });
 
@@ -482,5 +492,10 @@ module.exports = function (grunt) {
     'newer:jshint',
     'test',
     'build'
+  ]);
+
+  grunt.registerTask('deploy', [
+    'build',
+    'buildcontrol'
   ]);
 };
