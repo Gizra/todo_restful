@@ -10,7 +10,7 @@
 To test it locally:
 
 1. Follow the below [Installation](https://github.com/Gizra/todo_restful#installation) notes
-1. If you Drupal site is not running under ``http://localhost/todo_restful/www`` then in ``client/Gruntfile.js`` 
+1. If your Drupal site is not running under ``http://localhost/todo_restful/www`` then in ``client/Gruntfile.js`` 
   change the ``apiEndpoint`` in line 404 to the correct one
 1. Under ``client`` directory execute ``grunt serve``
 1. Add to Drupal's ``settings.php``:
